@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Rotten Fruit Detector</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body><main>
+<h1>Fresh or Rotten?</h1>
+<input type="file" id="file" accept="image/*">
+<img id="preview" alt="">
+<button id="go">Check</button>
+<p id="result"></p>
+<h3>Recent predictions</h3>
+<table><tr><th>File</th><th>Result</th><th>Confidence</th><th>Time</th></tr>
+{% for r in history %}<tr><td>{{r[0]}}</td><td>{{r[1]}}</td><td>{{ '%.1f'|format(r[2]*100) }}%</td><td>{{r[3]}}</td></tr>{% endfor %}
+</table></main>
+<script>
+const file=document.getElementById('file'), prev=document.getElementById('preview'), res=document.getElementById('result');
+file.onchange=()=>{ prev.src=URL.createObjectURL(file.files[0]); };
+document.getElementById('go').onclick=async()=>{
+  if(!file.files[0]){res.textContent='Choose an image first';return;}
+  const fd=new FormData(); fd.append('image',file.files[0]);
+  const r=await (await fetch('/predict',{method:'POST',body:fd})).json();
+  res.textContent=r.error||`${r.label.toUpperCase()} (${r.confidence}% confident)`;
+};
+</script></body></html>
